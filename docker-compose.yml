@@ -1,0 +1,30 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: iitj-mail-postgres
+    environment:
+      POSTGRES_USER: iitj
+      POSTGRES_PASSWORD: RANGEROVER
+      POSTGRES_DB: iitj_mail
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  
+  smtp-server:
+    build: .
+    container_name: iitj-smtp-server
+    depends_on:
+      - postgres
+
+    env_file:
+      - ./.env
+
+    ports:
+      - "2525:2525"
+
+volumes: 
+  postgres_data:
