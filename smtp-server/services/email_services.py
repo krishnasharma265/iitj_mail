@@ -2,6 +2,11 @@
 import model
 from model.email import EMAIL
 from model.recipient import EMAIL_RECIPIENT
+from model.user import USER
+from model.mailbox import MAILBOX
+from model.mailbox_messages import MAILBOXMESSAGE
+
+
 
 def save_email(db,sender,recipients,subject,body):
 
@@ -10,11 +15,32 @@ def save_email(db,sender,recipients,subject,body):
 
         db.add(email)
         db.flush()
-        recip=[]
+        # recip=[]
         for recipant in recipients:
-            recip.append(EMAIL_RECIPIENT(email_id=email.id,recipient=recipant))
+            email_recipant=EMAIL_RECIPIENT(email_id=email.id,
+                    recipient=recipant)
+            db.add(email_recipant)
 
-        db.add_all(recip)
+            user=db.query(USER).filter(USER.email==recipant).first()
+
+            if user is None:
+                print(f"User not found : {recipant}")
+                continue
+
+            mailbox=db.query(MAILBOX).filter(MAILBOX.user_id==user.id,
+                                                MAILBOX.name=="INBOX").first()
+
+            if mailbox is None:
+                print(f"INBOX not found for  {recipant}")
+                continue
+
+            mailbox_message=MAILBOXMESSAGE(mailbox_id=mailbox.id,
+                                            email_id=email.id,
+                                            is_read=False)
+
+            db.add(mailbox_message)
+
+        # db.add_all(recip)
         db.commit()
 
         print(f"email has been added to DB with id {email.id}")
