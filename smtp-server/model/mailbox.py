@@ -9,4 +9,4 @@ class MAILBOX(Base):
 
     user_id=Column(Integer,ForeignKey("users.id",ondelete="CASCADE"),nullable=False)
 
-    name=Column(String(50),nullable)
+    name=Column(String(50),nullable=False)

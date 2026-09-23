@@ -2,9 +2,9 @@
 import model
 from model.email import EMAIL
 from model.recipient import EMAIL_RECIPIENT
-from model.user import USER
+from model.users import USER
 from model.mailbox import MAILBOX
-from model.mailbox_messages import MAILBOXMESSAGE
+from model.mailbox_message import MAILBOXMESSAGE
 
 
 
