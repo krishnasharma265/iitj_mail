@@ -1,11 +1,14 @@
 FROM python:3.12
 
-WORKDIR /smtp-server
+WORKDIR /app
 
 COPY requirements.txt .
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY /smtp-server .
+COPY common/ ./common/
+COPY smtp-server/ ./smtp-server/
+
+WORKDIR /app/smtp-server
 
 CMD ["python","-u","server.py"]

@@ -1,30 +1,56 @@
 services:
-  postgres:
+  db:
     image: postgres:16
-    container_name: iitj-mail-postgres
+    container_name: iitj-mail-db
     environment:
       POSTGRES_USER: iitj
       POSTGRES_PASSWORD: RANGEROVER
       POSTGRES_DB: iitj_mail
 
     ports:
-      - "5432:5432"
+      - "5440:5432"
 
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U iitj -d iitj_mail"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   
   smtp-server:
-    build: .
+    build: 
+      context: .
+      dockerfile: Dockerfile.smtp
     container_name: iitj-smtp-server
     depends_on:
-      - postgres
+      db:
+        condition: service_healthy
 
     env_file:
       - ./.env
 
     ports:
       - "2525:2525"
+
+  imap-server:
+    build:
+      context: .
+      dockerfile: Dockerfile.imap
+
+    container_name: iitj-imap-server
+
+    depends_on:
+      db:
+        condition: service_healthy
+
+    env_file:
+      - ./.env
+
+    ports:
+      - "143:143"
 
 volumes: 
   postgres_data:

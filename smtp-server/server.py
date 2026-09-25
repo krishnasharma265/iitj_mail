@@ -1,10 +1,13 @@
+import sys, os
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+
 import socket
-from database.connection import db_init,get_db
+from common.database.connection import db_init,get_db
 # from sqlalchemy.orm import Session
 # from fastapi import Depends
-from database.database import SessionLocal
-from services.email_services import save_email
-import model
+from common.database.database import SessionLocal
+from common.services.email_services import save_email
+import common.model
 
 
 
@@ -244,7 +247,16 @@ def start_server():
 
 
 if __name__ == "__main__":
-    db_init()
+    for attempt in range(10):
+        try:
+            db_init()
+            break
+        except OperationalError:
+            print(f"DB not ready, retrying ({attempt+1}/10)...")
+            time.sleep(3)
+    else:
+        raise RuntimeError("Could not connect to database after retries")
+    
     start_server()
 
 

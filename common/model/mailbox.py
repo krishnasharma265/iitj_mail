@@ -1,5 +1,5 @@
 from sqlalchemy import Column,Text,Integer,String,ForeignKey
-from database.database import Base
+from common.database.database import Base
 
 class MAILBOX(Base):
     __tablename__="mailboxes"

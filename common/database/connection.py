@@ -1,4 +1,4 @@
-from database.database import Base,engine,write_engine,read_engine,write_SessionLocal,read_SessionLocal,SessionLocal
+from common.database.database import Base,engine,write_engine,read_engine,write_SessionLocal,read_SessionLocal,SessionLocal
 
 def db_init():
     Base.metadata.create_all(bind=engine)

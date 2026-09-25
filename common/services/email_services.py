@@ -1,10 +1,10 @@
 
-import model
-from model.email import EMAIL
-from model.recipient import EMAIL_RECIPIENT
-from model.users import USER
-from model.mailbox import MAILBOX
-from model.mailbox_message import MAILBOXMESSAGE
+import common.model
+from common.model.email import EMAIL
+from common.model.recipient import EMAIL_RECIPIENT
+from common.model.users import USER
+from common.model.mailbox import MAILBOX
+from common.model.mailbox_message import MAILBOXMESSAGE
 
 
 
