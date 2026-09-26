@@ -12,3 +12,5 @@ class MAILBOXMESSAGE(Base):
     email_id=Column(Integer,ForeignKey("emails.id",ondelete="CASCADE"),nullable=False)
 
     is_read=Column(Boolean,default=False,nullable=False)
+
+    is_deleted = Column(Boolean, default=False)
