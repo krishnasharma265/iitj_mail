@@ -13,4 +13,4 @@ class MAILBOXMESSAGE(Base):
 
     is_read=Column(Boolean,default=False,nullable=False)
 
-    is_deleted = Column(Boolean, default=False)
+    is_deleted = Column(Boolean, default=False,nullable=False)
