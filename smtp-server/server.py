@@ -17,6 +17,10 @@ import common.model
 HOST="0.0.0.0"
 PORT=2525
 
+MAX_LINE_LENGTH=1000
+MAX_DATA_SIZE = 10 * 1024 * 1024
+data_too_large=False
+
 def recieve_line(client):
     data=b""
 
@@ -28,7 +32,10 @@ def recieve_line(client):
         
         data+= chunk
 
-    return data.decode().strip()
+        if len(data)>MAX_LINE_LENGTH:
+            raise ValueError("SMTP line too long than MAX LIMIT ")
+
+    return data[:-2].decode("utf-8",errors="replace")
 
 def parse_mail_data(mail_data):
     "convert raw data into subject and body"
@@ -100,6 +107,10 @@ def start_server():
         client, address= server.accept()
         print(f"connection from {address}")
 
+
+        ## set timeout for doing opertion
+        client.settimeout(60)
+
         client.sendall(b"220 mySMTP server Ready\r\n")
 
         greeted=False
@@ -107,7 +118,22 @@ def start_server():
         recipients=[]
 
         while True:
-            message=recieve_line(client)
+
+            try :
+
+                message=recieve_line(client)
+            except socket.tiemout:
+                print(f"connection timed out :{address}")
+
+                break
+            except LineTooLong:
+                client.sendall(
+                    b"500 line too long \r\n"
+                )
+                break
+            except (ClientDisconnected,ConnectionResetError,BrokenPipeError):
+                print(f"client Disconnected: {address}")
+                break
             
 
             if message is None:
@@ -133,7 +159,20 @@ def start_server():
                     b"250 Hello\r\n"
                 )
 
-                ##mail from 
+
+            elif message.upper() == "NOOP":
+                client.sendall(
+                    b"250 OK\r\n"
+                )
+
+            elif message.upper()=="RSET":
+                sender=None
+                recipients=[]
+
+                client.sendall(b"250 ok \r\n")
+
+
+            ##  mail from 
             elif message.upper().startswith("MAIL FROM"):
 
                 if not greeted:
@@ -187,7 +226,7 @@ def start_server():
                         b"503 Need MAIL FROM first\r\n"
                     )
                     continue
-                if recipients is None:
+                if len(recipients)==0:
                     client.sendall(
                         b"503 Need RCPT TO first\r\n"
                     )
@@ -207,8 +246,23 @@ def start_server():
 
                     mail_data +=chunk
 
+                    if len(mail_data)>MAX_DATA_SIZE:
+
+                        data_too_large=True
+
+                        # client.sendall(
+                        #     b"552 Message exceeded maximum size\r\n"
+                        # )
+                        
+                        # break
+
                     if b"\r\n.\r\n" in mail_data:
                         break
+
+                if data_too_large==True:
+                    sender=None
+                    recipients=[]
+                    continue
                 
 
                 ## convert bytes to string
