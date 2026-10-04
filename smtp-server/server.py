@@ -37,11 +37,38 @@ def recieve_line(client):
 
     return data[:-2].decode("utf-8",errors="replace")
 
+def recieve_data(client):
+    data=b""
+    data_too_large=False
+
+    while True:
+        line=recieve_line(client)
+
+        if line is None:
+            return None,False
+
+        if line==".":
+            break
+
+        if line.startswith(".."):
+            line=line[1:]
+
+        line_bytes=line.encode("utf-8")+b"\r\n"
+
+        if not data_too_large:
+            if len(data)+len(line_bytes)>MAX_DATA_SIZE:
+                data_too_large=True
+                continue
+
+            data+=line_bytes
+
+    return data,data_too_large
+
 def parse_mail_data(mail_data):
     "convert raw data into subject and body"
 
 
-    mail_data=mail_data.replace("\r\n.\r\n","")
+    
     mail_data=mail_data.replace("\r\n","\n")
 
     lines=mail_data.split("\n")
@@ -236,30 +263,19 @@ def start_server():
                     b"354 start mail input ; end with <CRLF>.<CRLF>\r\n"
                 )
             
-                mail_data=b""
+                mail_data,data_too_large=recieve_data(client)
 
-                while True:
-                    chunk = client.recv(1024)
+                if mail_data is None:
+                    break
 
-                    if not chunk:
-                        break
 
-                    mail_data +=chunk
-
-                    if len(mail_data)>MAX_DATA_SIZE:
-
-                        data_too_large=True
-
-                        # client.sendall(
-                        #     b"552 Message exceeded maximum size\r\n"
-                        # )
-                        
-                        # break
-
-                    if b"\r\n.\r\n" in mail_data:
-                        break
-
+                
                 if data_too_large==True:
+
+                    client.sendall(
+                        b"552 Message exceeded maximum size\r\n"
+                    )
+
                     sender=None
                     recipients=[]
                     continue

@@ -24,7 +24,7 @@ def recieve_line(client):
         if not chunk:
             return None
         data+=chunk
-    return data.decode().strip()
+    return data[:-2].decode("utf-8", errors="replace")
 
 def start_server():
     server=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
@@ -212,7 +212,7 @@ def start_server():
                     f"{tag} OK CREATE completed\r\n".encode()
                 )
 
-            elif command=="DELETE":
+            elif command=="DELETE"  and selected_mailbox==None:
                 if authenticated==False or current_user==None:
                     client.sendall(
                         f"{tag} NO Authenticate first\r\n".encode()
@@ -275,7 +275,7 @@ def start_server():
                 mailbox_oldname=parts[2]
                 mailbox_newname=parts[3]
 
-                mailbox=db.query(MAILBOX).filter(MAILBOX.user_id==current_user.id,MAILBOX.name==mailbox_name).first()
+                mailbox=db.query(MAILBOX).filter(MAILBOX.user_id==current_user.id,MAILBOX.name==mailbox_oldname).first()
 
                 if mailbox is None:
                     client.sendall(
@@ -283,7 +283,7 @@ def start_server():
                     )
                     continue
 
-                if old_name.upper() == "INBOX":
+                if mailbox_oldname.upper() == "INBOX":
                     client.sendall(
                         f"{tag} NO Cannot rename INBOX\r\n".encode()
                     )
@@ -291,7 +291,7 @@ def start_server():
 
                 existing_mailbox = db.query(MAILBOX).filter(
                     MAILBOX.user_id == current_user.id,
-                    MAILBOX.name == new_name
+                    MAILBOX.name == mailbox_newname
                 ).first()
 
                 if existing_mailbox is not None:
@@ -300,7 +300,7 @@ def start_server():
                     )
                     continue
 
-                mailbox.name = new_name
+                mailbox.name = mailbox_newname
                 db.commit()
 
                 client.sendall(
@@ -508,9 +508,9 @@ def start_server():
                 db.commit()
 
                 response=(
-                    f"* message no {message_no}  FETCH"
-                    f"sender : {fetch_email.sender}"
-                    f"subject : {fetch_email.subject}"
+                    f"* message no {message_no}  FETCH\n"
+                    f"sender : {fetch_email.sender}\n"
+                    f"subject : {fetch_email.subject}\n"
                     f"body : {fetch_email.body}\r\n"
                 )
 
