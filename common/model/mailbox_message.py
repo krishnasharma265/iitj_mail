@@ -14,3 +14,7 @@ class MAILBOXMESSAGE(Base):
     is_read=Column(Boolean,default=False,nullable=False)
 
     is_deleted = Column(Boolean, default=False,nullable=False)
+
+    mailbox=relationship("MAILBOX",back_populates="mailbox_message")
+
+    emails=relationship("EMAIL",back_populates="mailbox_message",cascade="all, delete-orphan")

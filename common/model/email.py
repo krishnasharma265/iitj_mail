@@ -13,3 +13,7 @@ class EMAIL(Base):
     body=Column(Text)
     created_at=Column(DateTime,default=datetime.utcnow)
 
+    mailbox_message=relationship("MAILBOXMESSAGE",back_populates="emails")
+
+    recipents=relationship("EMAIL_RECIPIENT",back_populates="email",cascade="all,delete-orphan")
+    

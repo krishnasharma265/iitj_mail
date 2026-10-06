@@ -10,3 +10,7 @@ class EMAIL_RECIPIENT(Base):
     email_id=Column(Integer,ForeignKey("emails.id",ondelete="CASCADE"),nullable=False)
     recipient=Column(String(255),nullable=False)
     
+
+    email=relationship("EMAIL",back_populates="recipents")
+
+

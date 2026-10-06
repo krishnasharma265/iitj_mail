@@ -1,5 +1,5 @@
 from common.database.database import Base
-from sqlalchemy.orm import Mapped
+from sqlalchemy.orm import Mapped,relationship
 from sqlalchemy import DateTime,Column,Integer,String
 from datetime import datetime
 
@@ -12,3 +12,4 @@ class USER(Base):
     password_hash=Column(String,nullable=False)
     created_at=Column(DateTime,default=datetime.utcnow)
 
+    mailboxes=relationship("MAILBOX",back_populates="user",cascade="all, delete-orphan",)
